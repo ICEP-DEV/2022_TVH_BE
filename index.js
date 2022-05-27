@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(fileupload());
 
+
 app.use(cors());
 app.use(bodypaser.json());
 
@@ -27,9 +28,9 @@ app.use('/public/uploads',express.static('public/uploads'))
 
 const db = mysql.createConnection({
 
-    host: 'tvh-db-inst.c1wcxiext4vo.us-east-1.rds.amazonaws.com',
-    user: 'admin',
-    password:'tvh2022icep',
+    host: 'localhost',
+    user: 'root',
+    password:'',
     database: 'tvhdb',
     port:3306
 })
@@ -287,7 +288,7 @@ app.post('/notice', (req, res) =>{
 app.get('/noticeLoadFile', (_req, _res) =>{
     
 
-    let qr = `select *  FROM announcement `;
+    let qr = `select *  FROM announcement ORDER BY id DESC `;
    
     
     db.query(qr, (err, result) => {
@@ -513,8 +514,8 @@ app.post("/signUp", (req,res) =>{
                                                 host: 'smtp.gmail.com',
                                                 port:'587',
                                                 auth:{
-                                                    user: 'gunman4435@gmail.com',
-                                                    pass: 'Mthethwa@4435'
+                                                    user: 'tshwanevirtualhackathon@gmail.com',
+                                                    pass: 'Tvh@0152'
                                                 },
                                                 secureConnection: 'false',
                                                 tls: {
@@ -523,11 +524,11 @@ app.post("/signUp", (req,res) =>{
                                                 }
                                              }); 
 
-                                             link = "http://localhost:4200/user-login";
+                                             link = "https://4xazztqw3p.us-east-1.awsapprunner.com/user-login";
                                      
                                         message ={
         
-                                        from:'gunman4435@gmail.com',
+                                        from:'tshwanevirtualhackathon@gmail.com',
                                         to:JSON.stringify(email),
                                         subject:'No reply :TVH Account',
                                         text: ( 'Thank you for creating the account ' 
@@ -614,7 +615,7 @@ app.post('/uploadTeam', async(req, res) =>{
 	const size = file.data.length;
 	const extension = path.extname(fileName);
 	
-	const allowedExtensions = /jpg|png/;
+	const allowedExtensions = /jpg|png|jpeg/;
 	
 	if(!allowedExtensions.test(extension))
     {
@@ -637,7 +638,7 @@ app.post('/uploadTeam', async(req, res) =>{
 	const URL = "/uploads/" + md5 + extension;
     await util.promisify(file.mv)("./public" + URL);
 
-    let sql = `INSERT INTO team (name, surname, occupation, catagory, description, file) VALUES("${name}", "${surname}", "${occupation}", "${catagory}", "${description}", "${"http://localhost:9002/public"+URL}" )`;
+    let sql = `INSERT INTO team (name, surname, occupation, catagory, description, file) VALUES("${name}", "${surname}", "${occupation}", "${catagory}", "${description}", "${"https://4xazztqw3p.us-east-1.awsapprunner.com/public"+URL}" )`;
 
     db.query(sql,(err,result) =>{
 
@@ -932,10 +933,10 @@ return
 
 app.delete("/deleteMember/:id",(req,res)=>{
     let id = req.params.id;
-    let create_sql =`Insert Into deletedparticipants`
+    let create_sql =`Insert Into deletedteam`
     +               `\nSelect * From team`
     +               `\nWhere id = '${id}'`;
-    dataBase.query(create_sql,(err,result)=>{
+    db.query(create_sql,(err,result)=>{
         if (err) {
             console.log(err,"Unable to move data!!!");
             res.send({message:"Unable to move data!!!"});
@@ -943,7 +944,7 @@ app.delete("/deleteMember/:id",(req,res)=>{
         }else{
             let delete_sql = `Delete From team`
             +                `\nWhere id = '${id}'`;
-            dataBase.query(delete_sql,(err,result)=>{
+            db.query(delete_sql,(err,result)=>{
                 if (err) {
                     console.log(err,"Unable to delete data!!!");
                     res.send({message:"Unable to delete data!!!"});
@@ -985,8 +986,8 @@ app.put("/updateMember/:id",(req,res)=>{
 
 app.get("/viewTeamMember/:id", (req,res) =>{
     let id = req.params.id;
-    let read_sql = `Select * From team Where p_id = "${id}"`;
-    dataBase.query(read_sql,(err,result) =>{
+    let read_sql = `Select * From team Where id = "${id}"`;
+    db.query(read_sql,(err,result) =>{
         if(err){
             console.log('error in the sql statement!!!!!!');
             res.send({Message:"Unable to Read data for the selected team member!!!"});
@@ -1001,6 +1002,137 @@ app.get("/viewTeamMember/:id", (req,res) =>{
 
 ////------------------------------------End_Edit_Time-----------------------------------------------------------------------//
 
+
+
+///------------------------------------Delete_Announcement----------------------------------------------------------------///
+
+app.delete("/deleteAnnouncement/:id", (req,res) =>{
+
+    let id = req.params.id;
+    let delete_sql = `DELETE FROM announcement WHERE id = '${id}'`;
+            db.query(delete_sql,(err,result) =>{
+                if(err){
+                    console.log(err,'Unable to delete announcement data!!!');
+                    res.send({Message:"Unable to delete announcements!!!"});
+                    return;
+                }else{
+                    res.send({message:"Announcement successfully deleted✔✔✔"});
+                    return;
+                }
+            });
+});
+
+///------------------------------------End_Delete_Announcement------------------------------------------------------------////
+
+
+///-----------------------------------Start_count_applications-------------------------------------------------------///
+
+app.get("/countApp", (_req, _res) => {
+
+
+
+    
+
+    let sql = `select count(name) AS number  FROM application`;
+
+    db.query(sql, async(err,result) =>{
+
+       
+    if(err)
+    {
+        console.log(err,'errs');
+
+        return
+    }
+    if(result.length > 0)
+    {
+
+        _res.send({
+
+            message: 'Applications data retrieved ',
+            data:result
+
+        
+        });
+        return
+
+    }
+    else
+    {
+        _res.send({
+
+            message: 'Applications data not found ',
+            
+
+        
+        });
+        return
+
+    }
+
+
+})
+
+return
+})
+
+
+///-----------------------------------End_count_applications--------------------------------------------------------------//
+
+
+///-----------------------------------Start_count_Team-------------------------------------------------------///
+
+app.get("/countTeam", (_req, _res) => {
+
+
+
+    
+
+    let sql = `select count(name) AS number  FROM team`;
+
+    db.query(sql, async(err,result) =>{
+
+       
+    if(err)
+    {
+        console.log(err,'errs');
+
+        return
+    }
+    if(result.length > 0)
+    {
+
+        _res.send({
+
+            message: 'Team data retrieved ',
+            data:result
+
+        
+        });
+        return
+
+    }
+    else
+    {
+        _res.send({
+
+            message: 'Team data not found ',
+            
+
+        
+        });
+        return
+
+    }
+
+
+})
+
+return
+})
+
+
+///-----------------------------------End_count_team--------------------------------------------------------------//
 
 
 app.listen(9002,() =>{
